@@ -1,3 +1,5 @@
+[日本語版はこちら](./README.ja.md)
+
 # Your Chrome like Arc or Dia Kit
 
 Chrome is great. But Arc and Dia have better UX for tab & URL management. This extension brings those missing pieces to Chrome — no store install needed, just build it yourself.
@@ -25,7 +27,7 @@ Safe by default:
 
 ### 3. Last Tab Switching
 
-`Alt+Shift+Tab` — jumps to the tab you were just looking at. Hit it again to keep going back through your tab history, like undo for your attention.
+`Ctrl+Shift+Z` — jumps to the tab you were just looking at. Hit it again to keep going back through your tab history, like undo for your attention.
 
 Tab history is stored in session storage, so it survives background service worker restarts. History resets when you close Chrome.
 
@@ -40,7 +42,7 @@ This is the "go back" feature Chrome should have had from day one.
 | Shortcut | Action |
 |---|---|
 | `Cmd+Shift+C` | Copy current URL |
-| `Alt+Shift+Tab` | Go back through tab history |
+| `Ctrl+Shift+Z` | Go back through tab history |
 | `Ctrl+Shift+D` | Toggle pin/unpin tab |
 
 All shortcuts can be customized at `chrome://extensions/shortcuts`.
