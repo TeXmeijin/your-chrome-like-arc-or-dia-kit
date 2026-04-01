@@ -1,25 +1,35 @@
 export default defineBackground(() => {
   // ==========================================
   // Feature 3: Switch to last used tab (stack)
+  // Persisted in storage.session to survive SW restart
   // ==========================================
-  const tabHistory: number[] = [];
+  const TAB_HISTORY_KEY = 'tab_history';
   let switchingViaShortcut = false;
 
-  function trackLastTab(tabId: number) {
+  async function getTabHistory(): Promise<number[]> {
+    const result = await browser.storage.session.get(TAB_HISTORY_KEY);
+    return (result[TAB_HISTORY_KEY] as number[] | undefined) ?? [];
+  }
+
+  async function saveTabHistory(history: number[]) {
+    await browser.storage.session.set({ [TAB_HISTORY_KEY]: history });
+  }
+
+  async function trackLastTab(tabId: number) {
     if (switchingViaShortcut) return;
-    // Remove if already in history, then push to top
-    const idx = tabHistory.indexOf(tabId);
-    if (idx !== -1) tabHistory.splice(idx, 1);
-    tabHistory.push(tabId);
+    const history = await getTabHistory();
+    const idx = history.indexOf(tabId);
+    if (idx !== -1) history.splice(idx, 1);
+    history.push(tabId);
+    await saveTabHistory(history);
   }
 
   async function switchToLastTab() {
-    if (tabHistory.length < 2) return;
-    // Pop current tab, peek at previous
-    const current = tabHistory.pop()!;
-    const target = tabHistory[tabHistory.length - 1];
-    // Put current back at the bottom so it's reachable later
-    tabHistory.unshift(current);
+    const history = await getTabHistory();
+    if (history.length < 2) return;
+    const current = history.pop()!;
+    const target = history[history.length - 1];
+    history.unshift(current);
     try {
       switchingViaShortcut = true;
       await browser.tabs.update(target, { active: true });
@@ -27,19 +37,24 @@ export default defineBackground(() => {
       if (tab.windowId !== undefined) {
         await browser.windows.update(tab.windowId, { focused: true });
       }
+      await saveTabHistory(history);
     } catch {
-      // Tab no longer exists, remove from history
-      const idx = tabHistory.indexOf(target);
-      if (idx !== -1) tabHistory.splice(idx, 1);
+      const idx = history.indexOf(target);
+      if (idx !== -1) history.splice(idx, 1);
+      await saveTabHistory(history);
     } finally {
       switchingViaShortcut = false;
     }
   }
 
   // Clean up closed tabs from history
-  browser.tabs.onRemoved.addListener((tabId) => {
-    const idx = tabHistory.indexOf(tabId);
-    if (idx !== -1) tabHistory.splice(idx, 1);
+  browser.tabs.onRemoved.addListener(async (tabId) => {
+    const history = await getTabHistory();
+    const idx = history.indexOf(tabId);
+    if (idx !== -1) {
+      history.splice(idx, 1);
+      await saveTabHistory(history);
+    }
   });
 
   // ==========================================
@@ -58,6 +73,45 @@ export default defineBackground(() => {
           target: { tabId: tab.id! },
           func: (url: string) => {
             navigator.clipboard.writeText(url);
+
+            const existing = document.getElementById('__copy-url-toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.id = '__copy-url-toast';
+            toast.textContent = 'Copied Current URL \u{1F4CB}';
+            Object.assign(toast.style, {
+              position: 'fixed',
+              top: '20px',
+              right: '20px',
+              zIndex: '2147483647',
+              padding: '12px 22px',
+              background: 'linear-gradient(180deg, rgba(115, 115, 125, 0.85) 0%, rgba(80, 80, 90, 0.9) 50%, rgba(115, 115, 125, 0.85) 100%)',
+              backdropFilter: 'blur(12px)',
+              color: '#fff',
+              fontSize: '17px',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+              fontWeight: '700',
+              letterSpacing: '0.3px',
+              borderRadius: '12px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+              opacity: '0',
+              transform: 'translateY(-8px)',
+              transition: 'opacity 0.2s ease, transform 0.2s ease',
+              pointerEvents: 'none',
+            });
+            document.body.appendChild(toast);
+
+            requestAnimationFrame(() => {
+              toast.style.opacity = '1';
+              toast.style.transform = 'translateY(0)';
+            });
+
+            setTimeout(() => {
+              toast.style.opacity = '0';
+              toast.style.transform = 'translateY(-8px)';
+              setTimeout(() => toast.remove(), 200);
+            }, 1500);
           },
           args: [tab.url],
         });
@@ -69,6 +123,13 @@ export default defineBackground(() => {
     if (command === 'last-tab') {
       switchToLastTab();
     }
+
+    if (command === 'toggle-pin') {
+      const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) {
+        await browser.tabs.update(tab.id, { pinned: !tab.pinned });
+      }
+    }
   });
 
   // ==========================================
@@ -76,7 +137,7 @@ export default defineBackground(() => {
   // ==========================================
   const STORAGE_KEY = 'tab_last_active';
   const CLEANUP_ALARM = 'tab-cleanup';
-  const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
+  const MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 hours
 
   async function recordTabActivity(tabId: number) {
     const data: Record<number, number> =

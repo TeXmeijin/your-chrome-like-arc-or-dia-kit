@@ -20,6 +20,13 @@ export default defineConfig({
         },
         description: 'Switch to last used tab',
       },
+      'toggle-pin': {
+        suggested_key: {
+          default: 'Ctrl+Shift+D',
+          mac: 'MacCtrl+Shift+D',
+        },
+        description: 'Toggle pin/unpin current tab',
+      },
     },
   },
 });

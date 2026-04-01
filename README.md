@@ -10,11 +10,13 @@ Chrome is great. But Arc and Dia have better UX for tab & URL management. This e
 
 `Cmd+Shift+C` — copies the current tab's URL to your clipboard instantly. No popup, no right-click menu. Just the URL, ready to paste.
 
+A sleek toast notification appears in the top-right corner to confirm.
+
 Works on all pages including `chrome://` pages (via offscreen fallback).
 
 ### 2. Auto Tab Cleanup
 
-Tabs you haven't touched in **24 hours** are automatically closed. Your browser stays clean without you lifting a finger.
+Tabs you haven't touched in **12 hours** are automatically closed. Your browser stays clean without you lifting a finger.
 
 Safe by default:
 - **Pinned tabs** are never closed
@@ -25,7 +27,23 @@ Safe by default:
 
 `Alt+Shift+Tab` — jumps to the tab you were just looking at. Hit it again to keep going back through your tab history, like undo for your attention.
 
+Tab history is stored in session storage, so it survives background service worker restarts. History resets when you close Chrome.
+
 This is the "go back" feature Chrome should have had from day one.
+
+### 4. Pin/Unpin Tab Toggle
+
+`Ctrl+Shift+D` — toggles pin/unpin on the current tab. Chrome doesn't have a shortcut for this. Now you do.
+
+## Shortcuts at a Glance
+
+| Shortcut | Action |
+|---|---|
+| `Cmd+Shift+C` | Copy current URL |
+| `Alt+Shift+Tab` | Go back through tab history |
+| `Ctrl+Shift+D` | Toggle pin/unpin tab |
+
+All shortcuts can be customized at `chrome://extensions/shortcuts`.
 
 ## Install (2 minutes)
 
@@ -43,10 +61,6 @@ Then:
 3. Click **Load unpacked** and select the `.output/chrome-mv3/` folder
 
 Done.
-
-## Customize Shortcuts
-
-All keyboard shortcuts can be changed at `chrome://extensions/shortcuts`.
 
 ## Tech Stack
 
