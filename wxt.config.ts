@@ -3,7 +3,7 @@ import { defineConfig } from 'wxt';
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   manifest: {
-    name: 'Chrome Power Tools',
+    name: 'Your Chrome like Arc or Dia Kit',
     description: 'Copy URL shortcut + auto tab cleanup',
     permissions: ['activeTab', 'scripting', 'offscreen', 'tabs', 'storage', 'alarms', 'tabGroups'],
     commands: {
