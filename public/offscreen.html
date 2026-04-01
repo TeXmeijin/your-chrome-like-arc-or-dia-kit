@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<textarea id="text"></textarea>
+<script>
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message.type !== 'copy-to-clipboard') return;
+    const textarea = document.getElementById('text');
+    textarea.value = message.text;
+    textarea.select();
+    document.execCommand('copy');
+  });
+</script>
