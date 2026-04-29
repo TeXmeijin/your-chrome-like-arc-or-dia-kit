@@ -16,7 +16,8 @@ export default defineConfig({
       },
       'last-tab': {
         suggested_key: {
-          default: 'Alt+Shift+Tab',
+          default: 'Ctrl+Shift+Z',
+          mac: 'MacCtrl+Shift+Z',
         },
         description: 'Switch to last used tab',
       },
